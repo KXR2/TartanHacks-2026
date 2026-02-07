@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Conductor Metronome</title>
+
+<style>
+  body { font-family: sans-serif; }
+  #video { width: 640px; height: 480px; border: 2px solid #000; display: block; margin-bottom: 10px; }
+  button { padding: 10px 20px; margin-right: 10px; font-size: 16px; }
+</style>
+</head>
+
+<body>
+
+<h1>Conductor Metronome</h1>
+
+<img id="video" alt="Video stream will appear here" />
+
+<div>
+  <button id="startBtn">Start</button>
+  <button id="stopBtn">Stop</button>
+</div>
+
+<p>Measure: <span id="measureCount">0</span></p>
+<p>Downbeat: <span id="downbeatStatus">No</span></p>
+
+<script>
+const ws = new WebSocket("ws://localhost:8001/ws/metronome");
+
+ws.onopen = () => console.log("WebSocket connected");
+ws.onerror = (e) => console.error("WebSocket error", e);
+ws.onclose = () => console.log("WebSocket closed");
+
+const video = document.getElementById("video");
+const measureCountElem = document.getElementById("measureCount");
+const downbeatElem = document.getElementById("downbeatStatus");
+
+// ---------------- AUDIO ----------------
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let measureAudioCache = {};
+
+// Fetch WAV from FastAPI HTTP endpoint instead of local file
+async function playMeasureWav(measure) {
+  const url = `http://localhost:8000/measure_wavs/measure_${measure}.wav`;
+
+  if (!measureAudioCache[url]) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Failed to fetch ${url}`);
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = await audioCtx.decodeAudioData(arrayBuffer);
+    measureAudioCache[url] = buffer;
+  }
+
+  const source = audioCtx.createBufferSource();
+  source.buffer = measureAudioCache[url];
+  source.connect(audioCtx.destination);
+  source.start();
+}
+
+function playClick() {
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.frequency.value = 1500;
+  gain.gain.value = 0.25;
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.05);
+}
+
+// ---------------- HANDLE MESSAGES ----------------
+ws.onmessage = async (event) => {
+  let data;
+  try { data = JSON.parse(event.data); } catch { return; }
+
+  if (data.type === "frame") {
+    if (data.frame) video.src = "data:image/jpeg;base64," + data.frame;
+    if (typeof data.measure_count === "number") {
+      measureCountElem.innerText = data.measure_count;
+
+      // Play verbal measure every 4 measures
+      if (data.measure_count % 4 === 0 && data.downbeat) {
+        playMeasureWav(data.measure_count).catch(console.warn);
+      }
+    }
+
+    downbeatElem.innerText = data.downbeat ? "YES" : "No";
+
+    // Also play click for downbeat
+    if (data.downbeat) playClick();
+  }
+
+  if (data.type === "status") console.log("Status:", data);
+  if (data.type === "error") console.error("Error from backend:", data.message);
+};
+
+// ---------------- CONTROLS ----------------
+document.getElementById("startBtn").onclick = () => {
+  if (ws.readyState === WebSocket.OPEN) ws.send("start");
+};
+
+document.getElementById("stopBtn").onclick = () => {
+  if (ws.readyState === WebSocket.OPEN) ws.send("stop");
+};
+</script>
+
+</body>
+</html>
