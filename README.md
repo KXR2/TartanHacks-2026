@@ -1,4 +1,6 @@
-TartanHacks-2026: Flowstate – Problem Solvers
+# TartanHacks-2026: Flowstate – Problem Solvers
+
+Footage of program working with a musician: https://uwprod-my.sharepoint.com/personal/jding95_wisc_edu/_layouts/15/stream.aspx?id=%2Fpersonal%2Fjding95%5Fwisc%5Fedu%2FDocuments%2FAttachments%2FIMG%5F1672%2Emov&ga=1&LOF=1&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2E63ebb144%2De329%2D4e52%2Dbecf%2D2f7665fc044c 
 
 Zachary Diringer, Kade Rolfe, Eleanor Ding, Marysol Alape Toro
 Project Overview
