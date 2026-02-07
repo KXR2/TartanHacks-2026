@@ -3,7 +3,7 @@ TartanHacks-2026: Flowstate – Problem Solvers
 Zachary Diringer, Kade Rolfe, Eleanor Ding, Marysol Alape Toro
 Project Overview
 
-Flowstate addresses a common problem in concert band and orchestra settings: ensemble members often fall out of sync with the conductor. Miscounted rests, rushing ahead, or falling behind can disrupt performance. Musicians may also focus more on their sheet music than the conductor’s motions.
+Flowstate addresses a common problem in concert band and orchestra settings: ensemble members often fall out of sync with the conductor. Miscounted rests, rushing ahead, or falling behind can disrupt performance. Musicians may also focus more on their sheet music than the conductor’s motions.  This product is also for blind & people that have vision issues.
 
 Our solution is a human-adaptive metronome that allows ensemble members to follow the conductor accurately, keeping the group synchronized without needing to constantly watch the conductor.
 
