@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Keyboard Conductor</title>
+<style>
+body { font-family: sans-serif; text-align: center; margin-top: 50px; }
+#info { margin-top: 20px; font-size: 1.2rem; }
+</style>
+</head>
+<body>
+<h1>Keyboard Conductor</h1>
+<p>Use ↑ = downbeat | ↓ = other beats</p>
+<div id="info">
+Measure: <span id="measure">1</span><br>
+Beat: <span id="beat">0</span><br>
+BPM: <span id="bpm">0</span>
+</div>
+
+<script>
+let lastTimestamp = 0;
+
+// WebSocket
+const ws = new WebSocket(`ws://${location.host}/ws`);
+ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    document.getElementById('measure').innerText = data.measure;
+    document.getElementById('beat').innerText = data.beat;
+    if(lastTimestamp){
+        const dt = data.timestamp - lastTimestamp;
+        const bpm = Math.round(60/dt);
+        document.getElementById('bpm').innerText = bpm;
+    }
+    lastTimestamp = data.timestamp;
+};
+
+// Send beat to backend
+async function hitBeat(type){
+    try{
+        await fetch(`/beat/${type}`, {method:'POST'});
+    } catch(e){
+        console.error("Beat fetch failed:", e);
+    }
+}
+
+// Keyboard input
+document.addEventListener('keydown', e => {
+    if(e.key==='ArrowUp') hitBeat('downbeat');
+    if(e.key==='ArrowDown') hitBeat('other');
+});
+</script>
+</body>
+</html>
